@@ -47,19 +47,25 @@ public class Group4Player implements Player {
 			throws Exception {
 
 		int maxEnergy = game.M();
+		int maxFood = game.K();
 		
-		if(food[1])
-			return new Move(1);
-		
-		if (energyleft > maxEnergy/2) {
+		if (energyleft > maxEnergy/2 || foodleft > (.5*maxFood)) {
 			return new Move(REPRODUCE, NORTH, state);
-      //reproduce N/W (so child moves before parent)
+			//reproduce N/W (so child moves before parent)
+		}
+		
+		if(foodleft > 0) {
+			return new Move(STAYPUT);
+		}
+		
+		if (food[WEST]) {
+			return new Move(WEST);
+		}
+		
+		if (food[EAST]) {
+			return new Move(EAST);
 		}
 
-	    else if (foodleft > 0) {
-	      return new Move(STAYPUT);
-	    }
-	
 	    else {
 	      // inhabit to be true if food is present, enemy is absent
 	      boolean[] inhabit = new boolean[4];
