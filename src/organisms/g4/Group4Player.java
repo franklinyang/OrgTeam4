@@ -16,7 +16,6 @@ public class Group4Player implements Player {
 
 	@Override
 	public void register(OrganismsGame __amoeba, int key) throws Exception {
-		
 		state = 0;
 		this.game = __amoeba;
 		
@@ -48,10 +47,10 @@ public class Group4Player implements Player {
 
 		int maxEnergy = game.M();
 		int maxFood = game.K();
+		state = foodleft;
 		
 		if (energyleft > maxEnergy/2 || foodleft > (.5*maxFood)) {
 			return new Move(REPRODUCE, NORTH, state);
-			//reproduce N/W (so child moves before parent)
 		}
 		
 		if(foodleft > 0) {
@@ -59,27 +58,32 @@ public class Group4Player implements Player {
 		}
 		
 		if (food[WEST]) {
+			state = foodleft + maxFood;
 			return new Move(WEST);
 		}
 		
 		if (food[EAST]) {
+			state = foodleft + maxFood;			
 			return new Move(EAST);
+		}
+		
+		if (food[SOUTH]) {
+			state = foodleft + maxFood;
+			return new Move(SOUTH);
 		}
 
 	    else {
-	      // inhabit to be true if food is present, enemy is absent
+	      // inhabit to be true if food is present & enemy is absent
 	      boolean[] inhabit = new boolean[4];
 	      for (int i=0; i < 4; i++) {
-	        inhabit[i] = food[i] && (enemy[i] != -1); 
+	        inhabit[i] = food[i] && (enemy[i] == -1); 
 	      }
 	
 	      for (int dir=0; dir < 4; dir++) {
-	
 	        if (inhabit[dir]) {
 	          // ***check to see if food array is correctly specified
 	          return new Move(dir+1);
 	        }
-	
 	      }
 	
 	      return new Move(STAYPUT);
