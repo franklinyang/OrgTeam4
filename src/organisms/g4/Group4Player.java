@@ -46,30 +46,33 @@ public class Group4Player implements Player {
 			throws Exception {
 
 		int maxEnergy = game.M();
-		int maxFood = game.K();
-		state = foodleft;
+		int neighbors = 0;
+		for (int dir=0; dir < 4; dir++) { neighbors = (enemy[dir] > 0) ? neighbors+1 : neighbors; }
 		
-		if (energyleft > maxEnergy/2 || foodleft > (.5*maxFood)) {
+		double threshold = 0; //threshold to reproduce; dynamic based on local population
+		switch (neighbors) {
+			case 0: threshold = 0.4;
+					break;
+			case 1: threshold = 0.5; //Alaska
+					break;
+			case 2: threshold = 0.6; //Minnesota
+					break;
+			case 3: threshold = 0.8; //Atlanta
+					break;
+			case 4: threshold = 1; //New York
+					break;
+		}
+		
+		if (energyleft > maxEnergy*threshold) {
 			return new Move(REPRODUCE, NORTH, state);
 		}
 		
-		if(foodleft > 0) {
+		else if(foodleft > 0) {
 			return new Move(STAYPUT);
 		}
 		
-		if (food[WEST]) {
-			state = foodleft + maxFood;
+		else if (food[WEST]) {
 			return new Move(WEST);
-		}
-		
-		if (food[EAST]) {
-			state = foodleft + maxFood;			
-			return new Move(EAST);
-		}
-		
-		if (food[SOUTH]) {
-			state = foodleft + maxFood;
-			return new Move(SOUTH);
 		}
 
 	    else {
