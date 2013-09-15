@@ -1,6 +1,7 @@
 package organisms.g4;
 
 import java.awt.Color;
+import java.util.HashMap;
 
 import organisms.Move;
 import organisms.OrganismsGame;
@@ -12,6 +13,7 @@ public class PredictorPlayer implements Player {
 	static final Color _CColor = new Color(1.0f, 0.67f, 0.67f);
 	private int state;
 	private OrganismsGame game;
+	HashMap<String, Integer> history = new HashMap<String, Integer> ();
 
 	@Override
 	public void register(OrganismsGame __amoeba, int key) throws Exception {
@@ -43,14 +45,11 @@ public class PredictorPlayer implements Player {
 	@Override
 	public Move move(boolean[] food, int[] enemy, int foodleft, int energyleft)
 			throws Exception {
-		
-		//state = 0 implies professor
-		if(state == 0) {
-			
-		} else {
+		int seenProfessors;
 		int maxEnergy = game.M();
 		int maxFood = game.K();
 		int neighbors = 0;
+		int location = 0;
 		double density = 0;
 		for (int dir=1; dir < 5; dir++) { neighbors = (enemy[dir] > 0) ? neighbors+1 : neighbors; }
 		
@@ -69,32 +68,54 @@ public class PredictorPlayer implements Player {
 					break;
 		}
 		
+		//state != 0 implies professor
+		if(state != 0) {
+			int prev = 0;
+			String current = "";
+			location++;
+			location = location % 4;
+			switch(location) {
+				case 0: current = "sw";
+					break;
+				case 1: current = "nw";
+					break;
+				case 2: current = "ne";
+					break;
+				case 3: current = "se";
+					break;
+			}
+			prev = history.get(current);
+			history.put(current,  foodleft);
+			switch(location) {
+				case 0: return new Move(NORTH);
+				case 1: return new Move(EAST);
+				case 2: return new Move(SOUTH);
+				case 3: return new Move(WEST);
+			}
+		} else {
 		
-		if (energyleft > maxEnergy*threshold) {
-			state = neighbors;
-			return new Move(REPRODUCE, NORTH, 0);
-		}
+			if (energyleft > maxEnergy*threshold) {
+				return new Move(REPRODUCE, NORTH, 1);
+			}
 		
-		else if (food[WEST]) {
-			return new Move(WEST);
-		}
+			else if (food[WEST]) {
+				return new Move(WEST);
+			}
 
-	    else {
-	      // inhabit to be true if food is present & enemy is absent
-	      boolean[] inhabit = new boolean[4];
-	      for (int i=0; i < 4; i++) {
-	        inhabit[i] = food[i] && (enemy[i] == -1); 
-	      }
+			else {
+				// inhabit to be true if food is present & enemy is absent
+				boolean[] inhabit = new boolean[4];
+				for (int i=0; i < 4; i++) {
+					inhabit[i] = food[i] && (enemy[i] == -1); 
+				}
 	
-	      for (int dir=0; dir < 4; dir++) {
-	        if (inhabit[dir]) {
-	          // ***check to see if food array is correctly specified
-	          return new Move(dir+1);
-	        }
-	      }	
-	    }
-		state = neighbors;
-		return new Move(STAYPUT);
+				for (int dir=0; dir < 4; dir++) {
+					if (inhabit[dir]) {
+						return new Move(dir+1);
+					}
+				}	
+			}
+			return new Move(STAYPUT);
 		}
 	}
 
