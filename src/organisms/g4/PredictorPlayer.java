@@ -117,6 +117,7 @@ public class PredictorPlayer implements Player {
 			}
 			return new Move(STAYPUT);
 		}
+		return null;
 	}
 
 }
