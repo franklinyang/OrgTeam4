@@ -13,6 +13,7 @@ public class Group4Player_FRANK implements Player {
 	static final Color _CColor = new Color(0.5f, 0.67f, 0.67f);
 	private int state, changeStrategy;
 	private OrganismsGame game;
+	private int boxedIn = -1;
 
 	@Override
 	public void register(OrganismsGame __amoeba, int key) throws Exception {
@@ -56,15 +57,23 @@ public class Group4Player_FRANK implements Player {
 		int maxEnergy = game.M();
 		int perUnitEnergy = game.u();
 		int perUnitMove = game.v();
+		int surrounding = 0;
 		boolean foodExists = false; // food in immediate vicinity
 		boolean[] inhabit = new boolean[5];
 		Random rand = new Random(); // maybe we should generate a random direction?
 		
 		if(state == 0)
 			state = rand.nextInt(4)+1;
-		for (int i=1; i<5; i++) {
+		for (int i=1; i<5; i ++) {
 			inhabit[i] = food[i] && (enemy[i] == -1); 
+			if(enemy[i] >= 0) { surrounding ++; }
 		}
+		
+		if(surrounding == 4) { boxedIn = 0; }
+		else { 
+			if(boxedIn != -1) { boxedIn ++; }
+		}
+		
 		
 		for (int dir=1; dir<5; dir++) { 
 			if(inhabit[dir]) {
@@ -93,11 +102,21 @@ public class Group4Player_FRANK implements Player {
 			return new Move(STAYPUT);
 		}
 
-
+		/*if(energyleft <= maxEnergy*.025) {
+			for (int i=state; i<state+5; i ++) {
+				if(enemy[i % 5] == -1) { return new Move(i % 5); } 
+			}
+		}*/
+		
 	    else {
 	    	if(energyleft >= 2*perUnitEnergy) {
 	    		return new Move(state);
 	    	}
+			/*if(boxedIn > 0 && boxedIn < 5) {
+				for(int i = state; i < state + 5; i ++) {
+					if(enemy[i % 5] == -1) { return new Move(i % 5); }
+				}
+			}*/
 	    }
 		return new Move(STAYPUT);
 	}
