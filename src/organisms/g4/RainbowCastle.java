@@ -26,6 +26,7 @@ public class RainbowCastle implements Player {
 	private int moveDirection;
 	
 	private boolean isOld;
+	private int lastSeen;
 	
 	//Wallz
 	private boolean recover;
@@ -102,10 +103,21 @@ public class RainbowCastle implements Player {
 		}
 		
 		for (int i = 1; i < 5; i++) {
-			if (food[i] && enemy[i] == -1) return generateMove(i);	
-			// Stalk non-RainbowCastle organisms
-			if (!isOld && (enemy[i] & 0b10000000) != 0b10000000 && enemy[i] != -1) return generateMove(i);
-			
+			if (food[i] && enemy[i] == -1) return generateMove(i);
+		}
+		
+		if (lastSeen != -1 && enemy[lastSeen] == -1) {
+			lastSeen = -1;
+			return generateMove(lastSeen);
+		}
+		
+		lastSeen = -1;
+
+		for (int i = 1; i < 5; i++) {
+			if (!isOld && (enemy[i] & 0b10000000) != 0b10000000 && enemy[i] != -1) {
+				lastSeen = i;
+				return generateMove(i);
+			}
 		}	
 		
 		if (isOld) {
