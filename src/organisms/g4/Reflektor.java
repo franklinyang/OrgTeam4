@@ -35,15 +35,15 @@ public class Reflektor implements Player {
 	 * MV_BRK = Move to break clusters
 	 * MV_CLN = Move to clone
 	 */
-	private static final double TURNS_TO_STRATEGY_CHANGE = 10;
+	private static final double TURNS_TO_STRATEGY_CHANGE = 20;
 	
-	private static final double PME_MV_REG = 0.2;
+	private static final double PME_MV_REG = 0.3;
 	private static final double PME_MV_BRK = 0.6;
 	private static final double PME_MV_CLN = 0.5;
 	private static final double PME_REP_NTN = 0.9;
-	private static final double PME_REP_NTF = 0.5;
+	private static final double PME_REP_NTF = 0.9;
 	private static final double PME_REP_FTN = 0.7;
-	private static final double PME_REP_FTF = 0.1;
+	private static final double PME_REP_FTF = 0.8;
 	
 	/*
 	private static final double FUBT_MV_REG = 0.7;
@@ -149,8 +149,6 @@ public class Reflektor implements Player {
 		// Count the number of organisms in your neighborhood and shout it loud and proud
 		int neighbors = 0;
 		int extendedNeighbors = 0; 
-		// This method will double-count on extended neighbors; this is actually useful, as it gives us an idea 
-		// of how densely packed the immediate area around the cell is.
 		for (int i = 1; i < 5; i++) {
 			neighbors = neighbors + (enemy[i] == -1 ? 0 : 1);
 			if ((enemy[i] & 0b10000000) == 128) {
