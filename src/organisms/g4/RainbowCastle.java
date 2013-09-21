@@ -19,9 +19,12 @@ public class RainbowCastle implements Player {
 	private static double ENERGY_PER_FOOD;
 	private static double ENERGY_PER_MOVE;
 	
-	private static int AGE_MAX_THRESHOLD = 25;
-	private static int DELTA_THRESHOLD_PER_GEN = 5;
-	private int REPRODUCTION_THRESHOLD = 400;
+	private static int AGE_MAX_THRESHOLD = 15;
+	private static int DELTA_THRESHOLD_PER_GEN = 0;
+	private static int MOVE_ENERGY_THRESHOLD = 0;
+	private double FOOD_UNITS_BELOW_MAX_TO_REPRODUCE = 1.0;
+	private static int ENERGY_TO_BREAK_CLUSTER = 200;
+	private int REPRODUCTION_THRESHOLD;
 	
 	private int moveDirection;
 	private int AGE_THRESHOLD;
@@ -48,6 +51,7 @@ public class RainbowCastle implements Player {
 		
 		generation = incomingState >> 3;
 		AGE_THRESHOLD = AGE_MAX_THRESHOLD - DELTA_THRESHOLD_PER_GEN * generation;
+		REPRODUCTION_THRESHOLD = (int) ((double) MAX_ENERGY - ((double) FOOD_UNITS_BELOW_MAX_TO_REPRODUCE * (double) ENERGY_PER_FOOD));
 	
 		this.game = game;
 	}
@@ -93,14 +97,29 @@ public class RainbowCastle implements Player {
 			return generateMove(STAYPUT);
 		}
 		
+		
+		
 		for (int i = 1; i < 5; i++) {
 			if (food[i] && enemy[i] == -1) return generateMove(i);
 		}
 		
+		/*
+		for (int i = 1; i < 5; i++) {
+			if (/*(enemy[i] & 0b10000000) == 128 && enemy[i] != -1 && energyleft > ENERGY_TO_BREAK_CLUSTER && isOld) {
+				for (int j = 1; j < 5; j++) {
+					if (enemy[j] == -1) return generateMove(j);
+				}
+			}
+		}*/
+		
 		if (isOld) {
 			return generateMove(STAYPUT);
-		} else {
+		} else if (enemy[moveDirection] != -1) {
+			return generateMove(getOrthogonal(moveDirection));
+		} else if (energyleft > ENERGY_PER_MOVE * MOVE_ENERGY_THRESHOLD) {
 			return generateMove(moveDirection);
+		} else {
+			return generateMove(STAYPUT);
 		}
 	}
 	
@@ -113,7 +132,7 @@ public class RainbowCastle implements Player {
 	}
 	
 	private int generateChildState() {
-		return (((generation + 1) % (DELTA_THRESHOLD_PER_GEN - 1)) << 3) + getOrthogonal(moveDirection);
+		return (((generation + 1) % (DELTA_THRESHOLD_PER_GEN - 1)) << 3) + getOrthogonal(moveDirection) + 128;
 	}
 	
 	private int getOrthogonal(int move) {
