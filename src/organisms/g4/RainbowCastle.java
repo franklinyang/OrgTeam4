@@ -10,7 +10,8 @@ import organisms.Player;
 public class RainbowCastle implements Player {
 
 	static final String ORGANISM_NAME = "Rainbow Castle";
-	static final Color ORGANISM_COLOR = new Color(155, 194, 158);
+	static final Color ORGANISM_YOUNG_COLOR = new Color(0, 255, 0);
+	static final Color ORGANISM_OLD_COLOR = new Color(0, 0, 255);
 	private OrganismsGame game;
 	
 	// Game constants
@@ -18,11 +19,14 @@ public class RainbowCastle implements Player {
 	private static double ENERGY_PER_FOOD;
 	private static double ENERGY_PER_MOVE;
 	
-	private static int AGE_THRESHOLD = 15;
+	private static int AGE_MAX_THRESHOLD = 25;
+	private static int DELTA_THRESHOLD_PER_GEN = 5;
 	private int REPRODUCTION_THRESHOLD = 400;
 	
 	private int moveDirection;
+	private int AGE_THRESHOLD;
 	private int ageCounter;
+	private int generation;
 	private boolean isOld;
 	private int state;
 
@@ -34,13 +38,17 @@ public class RainbowCastle implements Player {
 		ENERGY_PER_MOVE = game.v();
 		isOld = false;
 		
+		state = incomingState >> 3;
+		
 		if (incomingState == -1) {
 			moveDirection = WEST;
 		} else {
-			moveDirection = incomingState;
-		}
+			moveDirection = incomingState & 0b00000111;
+		}		
 		
-		state = 0;
+		generation = incomingState >> 3;
+		AGE_THRESHOLD = AGE_MAX_THRESHOLD - DELTA_THRESHOLD_PER_GEN * generation;
+	
 		this.game = game;
 	}
 
@@ -51,7 +59,11 @@ public class RainbowCastle implements Player {
 
 	@Override
 	public Color color() throws Exception {
-		return ORGANISM_COLOR;
+		if (isOld) {
+			return ORGANISM_OLD_COLOR;
+		} else {
+			return ORGANISM_YOUNG_COLOR;
+		}
 	}
 
 	@Override
@@ -74,7 +86,7 @@ public class RainbowCastle implements Player {
 		}
 		
 		if (energyleft > REPRODUCTION_THRESHOLD) {
-			return generateMove(REPRODUCE, getOrthogonal(moveDirection), getOrthogonal(moveDirection));
+			return generateMove(REPRODUCE, getOrthogonal(moveDirection), generateChildState());
 		}
 		
 		if (foodleft > 0) {
@@ -98,6 +110,10 @@ public class RainbowCastle implements Player {
 	
 	private Move generateMove(int dir) throws Exception {
 		return new Move(dir);
+	}
+	
+	private int generateChildState() {
+		return (((generation + 1) % (DELTA_THRESHOLD_PER_GEN - 1)) << 3) + getOrthogonal(moveDirection);
 	}
 	
 	private int getOrthogonal(int move) {
