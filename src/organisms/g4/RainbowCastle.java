@@ -21,7 +21,7 @@ public class RainbowCastle implements Player {
 	private static int AGE_THRESHOLD = 20;
 	
 	
-	private double reproductionThreshold = 0.72;
+	private double reproductionThreshold = 0.70;
 	private double moveEnergyThreshold = 0.0;
 	private int moveDirection;
 	
