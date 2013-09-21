@@ -10,27 +10,29 @@ import organisms.Player;
 public class RainbowCastle implements Player {
 
 	static final String ORGANISM_NAME = "Rainbow Castle";
-	static final Color ORGANISM_YOUNG_COLOR = new Color(0, 255, 0);
-	static final Color ORGANISM_OLD_COLOR = new Color(0, 0, 255);
+	static final Color ORGANISM_YOUNG_COLOR = new Color(50, 255, 100);
+	static final Color ORGANISM_OLD_COLOR = new Color(50, 100, 255);
 	private OrganismsGame game;
 	
 	// Game constants
 	private static double MAX_ENERGY;
 	private static double ENERGY_PER_FOOD;
 	private static double ENERGY_PER_MOVE;
+	private static int AGE_THRESHOLD = 20;
 	
-	private static int AGE_MAX_THRESHOLD = 15;
-	private static int DELTA_THRESHOLD_PER_GEN = 0;
-	private static int MOVE_ENERGY_THRESHOLD = 0;
-	private double FOOD_UNITS_BELOW_MAX_TO_REPRODUCE = 1.0;
-	private static int ENERGY_TO_BREAK_CLUSTER = 200;
-	private int REPRODUCTION_THRESHOLD;
 	
+	private double reproductionThreshold = 0.72;
+	private double moveEnergyThreshold = 0.0;
 	private int moveDirection;
-	private int AGE_THRESHOLD;
+	
+	private boolean isOld;
+	
+	//Wallz
+	private boolean recover;
+	private int recoverDirection;
+	
 	private int ageCounter;
 	private int generation;
-	private boolean isOld;
 	private int state;
 
 	@Override
@@ -41,18 +43,16 @@ public class RainbowCastle implements Player {
 		ENERGY_PER_MOVE = game.v();
 		isOld = false;
 		
-		state = incomingState >> 3;
+		
 		
 		if (incomingState == -1) {
+			state = 128 + WEST;
 			moveDirection = WEST;
 		} else {
-			moveDirection = incomingState & 0b00000111;
-		}		
-		
-		generation = incomingState >> 3;
-		AGE_THRESHOLD = AGE_MAX_THRESHOLD - DELTA_THRESHOLD_PER_GEN * generation;
-		REPRODUCTION_THRESHOLD = (int) ((double) MAX_ENERGY - ((double) FOOD_UNITS_BELOW_MAX_TO_REPRODUCE * (double) ENERGY_PER_FOOD));
-	
+			this.state = incomingState + 128;
+			moveDirection = incomingState; 
+		}
+
 		this.game = game;
 	}
 
@@ -89,34 +89,31 @@ public class RainbowCastle implements Player {
 			isOld = true;
 		}
 		
-		if (energyleft > REPRODUCTION_THRESHOLD) {
-			return generateMove(REPRODUCE, getOrthogonal(moveDirection), generateChildState());
+		if (energyleft > MAX_ENERGY * reproductionThreshold) {
+			if (isOld) {
+				isOld = false;
+				ageCounter = 0;
+			}
+			return generateMove(REPRODUCE, getOrthogonal(moveDirection), getOrthogonal(moveDirection));
 		}
 		
 		if (foodleft > 0) {
 			return generateMove(STAYPUT);
 		}
 		
-		
-		
 		for (int i = 1; i < 5; i++) {
-			if (food[i] && enemy[i] == -1) return generateMove(i);
-		}
-		
-		/*
-		for (int i = 1; i < 5; i++) {
-			if (/*(enemy[i] & 0b10000000) == 128 && enemy[i] != -1 && energyleft > ENERGY_TO_BREAK_CLUSTER && isOld) {
-				for (int j = 1; j < 5; j++) {
-					if (enemy[j] == -1) return generateMove(j);
-				}
-			}
-		}*/
+			if (food[i] && enemy[i] == -1) return generateMove(i);	
+			// Stalk non-RainbowCastle organisms
+			if (!isOld && (enemy[i] & 0b10000000) != 0b10000000 && enemy[i] != -1) return generateMove(i);
+			
+		}	
 		
 		if (isOld) {
 			return generateMove(STAYPUT);
-		} else if (enemy[moveDirection] != -1) {
-			return generateMove(getOrthogonal(moveDirection));
-		} else if (energyleft > ENERGY_PER_MOVE * MOVE_ENERGY_THRESHOLD) {
+		} else if (energyleft > MAX_ENERGY * moveEnergyThreshold) {
+			if (enemy[moveDirection % 5] != -1) {
+				moveDirection = moveDirection + 1;
+			}
 			return generateMove(moveDirection);
 		} else {
 			return generateMove(STAYPUT);
@@ -131,16 +128,13 @@ public class RainbowCastle implements Player {
 		return new Move(dir);
 	}
 	
-	private int generateChildState() {
-		return (((generation + 1) % (DELTA_THRESHOLD_PER_GEN - 1)) << 3) + getOrthogonal(moveDirection) + 128;
-	}
 	
 	private int getOrthogonal(int move) {
 		switch (move) {
-		case NORTH: return WEST;
-		case SOUTH: return EAST;
-		case EAST: return NORTH;
-		case WEST: return SOUTH;
+		case NORTH: return (new Random().nextBoolean() ? WEST : EAST);
+		case SOUTH: return (new Random().nextBoolean() ? WEST : EAST);
+		case EAST: return (new Random().nextBoolean() ? NORTH : SOUTH);
+		case WEST: return (new Random().nextBoolean() ? NORTH : SOUTH);
 		default: return WEST;
 		}
 	}
